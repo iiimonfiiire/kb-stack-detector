@@ -49,6 +49,7 @@ const GENERIC_LINKS = {
 const SWITCHER_RE = /(language[-_]?(?:selector|switcher|picker|menu|dropdown)|locale[-_]?(?:selector|switcher|picker|menu|dropdown)|lang[-_]?switch)/i;
 const VERSION_UI_RE = /(version[-_]?(?:selector|switcher|picker|dropdown|menu)|docsVersionDropdown|VersionPicker|rm-VersionDropdown)/i;
 const ASSET_RE = /\.(png|jpe?g|gif|svg|webp|ico|css|js|mjs|json|xml|pdf|zip|woff2?|ttf|mp4)$/i;
+const SEARCH_RE = /<input\b[^>]*\btype=["']?search\b|<[a-z]+\b[^>]*\brole=["']?search\b|<form\b[^>]*\baction=["'][^"']*\/search\b|\bclass=["'][^"']*\bDocSearch-Button\b/i;
 
 function distinct(urls, re) {
   const ids = new Set();
@@ -110,6 +111,7 @@ export function analyzeStructure({ url, html = '', extracted, platformId, header
     },
     counts,
     internalPages,
+    search: SEARCH_RE.test(html),
     versioning: {
       detected: versions.size > 1 || !!versionUi || !!headers['x-rtd-version'],
       versions: [...versions].sort(),

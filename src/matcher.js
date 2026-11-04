@@ -154,9 +154,11 @@ export function match(signals, rules) {
         name: tech.name,
         category: tech.category,
         website: tech.website,
+        generalPurpose: !!tech.generalPurpose,
         score,
         confidence: confidenceFor(score),
         evidence,
+        impliedBy: [],
       });
     }
   }
@@ -169,15 +171,18 @@ export function match(signals, rules) {
       const existing = byId.get(impliedId);
       if (existing) {
         existing.evidence.push(`implied by ${r.name}`);
+        existing.impliedBy.push(r.id);
       } else {
         byId.set(impliedId, {
           id: implied.id,
           name: implied.name,
           category: implied.category,
           website: implied.website,
+          generalPurpose: !!implied.generalPurpose,
           score: 0,
           confidence: r.confidence === 'high' ? 'medium' : 'low',
           evidence: [`implied by ${r.name}`],
+          impliedBy: [r.id],
         });
       }
     }
