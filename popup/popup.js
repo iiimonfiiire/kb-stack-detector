@@ -5,7 +5,6 @@ import { WELL_KNOWN_FILES } from '../src/ai-readiness.js';
 
 const LIMITS = { maxHtml: MAX_HTML, maxFile: 1_000_000, timeoutMs: 6000 };
 const BLOCKED_HOSTS = [/^chromewebstore\.google\.com$/, /^chrome\.google\.com$/, /^microsoftedge\.microsoft\.com$/];
-const EVIDENCE_PRIORITY = ['cname', 'headers', 'meta', 'jsGlobals', 'scriptSrc'];
 
 const app = document.getElementById('app');
 
@@ -48,14 +47,6 @@ function injectable(url) {
   }
 }
 
-function bestEvidence(result) {
-  for (const type of EVIDENCE_PRIORITY) {
-    const hit = result.evidence.find((e) => e.startsWith(type + ':'));
-    if (hit) return hit;
-  }
-  return result.evidence[0];
-}
-
 function techItem(r) {
   return h(
     'details',
@@ -71,19 +62,15 @@ function techItem(r) {
 }
 
 function hero(report) {
-  const p = report.platform;
-  const otherKb = report.results.filter((r) => r.category === 'kb' && r !== p);
+  const v = report.verdict;
+  const otherKb = report.results.filter((r) => r.category === 'kb' && r !== report.platform);
   return h(
     'header',
     { class: 'hero' },
     h('p', { class: 'host', title: report.url, text: report.host }),
-    h('p', { class: 'platform-label', text: 'Knowledge base platform' }),
-    p
-      ? h('p', { class: 'platform' }, h('span', { text: p.name }), pill(p.confidence))
-      : h('p', { class: 'platform unknown', text: 'Unknown platform' }),
-    p
-      ? h('p', { class: 'why', text: bestEvidence(p) })
-      : h('p', { class: 'why', text: 'No rule matched. Raw clues below can help you write one.' }),
+    h('p', { class: 'platform-label', text: v.label }),
+    h('p', { class: v.noRule ? 'platform unknown' : 'platform' }, h('span', { text: v.headline }), v.confidence && pill(v.confidence)),
+    h('p', { class: 'why', text: v.supporting }),
     otherKb.length > 0 && h('p', { class: 'also', text: `Also: ${otherKb.map((r) => r.name).join(', ')}` }),
   );
 }
@@ -234,7 +221,7 @@ function render(report, rules) {
     ...sections,
     aiSection(report.aiReadiness),
     structureSection(report.structure),
-    cluesSection(report.clues, !report.platform),
+    cluesSection(report.clues, report.verdict.noRule),
     h('footer', {}, h('span', { text: 'Passive scan. Nothing stored.' }), h('button', { type: 'button', onclick: () => run(), text: 'Rescan' })),
   ];
   app.replaceChildren(...parts.filter(Boolean));

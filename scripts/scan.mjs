@@ -62,10 +62,12 @@ export async function scan(target) {
 }
 
 function summarize(target, { status, report }) {
-  const p = report.platform;
+  const v = report.verdict;
   const lines = [];
   lines.push(`\n== ${target}  (HTTP ${status}, final ${report.url})`);
-  lines.push(`Platform: ${p ? `${p.name} [${p.confidence}]` : 'Unknown platform'}`);
+  lines.push(`${v.label}: ${v.headline}${v.confidence ? ` [${v.confidence}]` : ''}`);
+  lines.push(`  ${v.supporting}`);
+  lines.push(`  KB shape: ${report.shape.looksLikeKb}${report.shape.reasons.length ? ` (${report.shape.reasons.join('; ')})` : ''}`);
   const byCat = {};
   for (const r of report.results) (byCat[r.category] ||= []).push(r);
   for (const [cat, list] of Object.entries(byCat)) {
