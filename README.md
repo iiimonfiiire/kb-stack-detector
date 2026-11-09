@@ -2,7 +2,8 @@
 
 A Chrome extension (Manifest V3) that tells you what a help center, knowledge base, support site, or docs hub is built on. Think Wappalyzer, but focused on the support and docs stack:
 
-- **Knowledge base platform**: Zendesk Guide, Intercom Articles, Freshdesk, Freshservice, Help Scout Docs, Document360, GitBook, Mintlify, ReadMe, Docusaurus, Notion (and Super), Confluence, HubSpot KB, Salesforce Experience Cloud, ServiceNow, Helpjuice, KnowledgeOwl, HelpDocs, Archbee, Nextra, VitePress, MkDocs / Material, Read the Docs, Fern, Redocly, Stoplight, Crisp, Gorgias, Front, Groove/Helply, Zoho Desk, Bettermode, Discourse, and more.
+- **Knowledge base platform**: Zendesk Guide, Intercom Articles, Freshdesk, Freshservice, Help Scout Docs, Document360, GitBook, Mintlify, ReadMe, Docusaurus, Notion (and Super), Confluence, HubSpot KB, Salesforce Experience Cloud, ServiceNow, Helpjuice, KnowledgeOwl, HelpDocs, Archbee, Nextra, VitePress, MkDocs / Material, Read the Docs, Fern, Redocly, Stoplight, Crisp, Gorgias, Front, Groove/Helply, Zoho Desk, Bettermode, Discourse, MediaWiki, DokuWiki, BookStack, Wiki.js, XWiki, the WordPress KB plugins BetterDocs, Heroic Knowledge Base, weDocs and Echo Knowledge Base, and more.
+- **CMS & site builders**: WordPress, Elementor, Drupal, Webflow, Squarespace, Wix, Ghost.
 - **AI & search**: Algolia / DocSearch, Inkeep, Kapa.ai, Mendable, Markprompt, DocsBot, Chatbase, Typesense, Elastic, Coveo, Swiftype, platform assistants, generic "Ask AI" buttons.
 - **Chat & ticketing**: Intercom Messenger, Zendesk Web Widget / Messaging, Drift, Freshchat, HubSpot chat, Crisp, LiveChat, Tawk.to, Olark, Help Scout Beacon, Gorgias, Front, ticket-form links.
 - **Hosting & frameworks**: Cloudflare, Vercel, Netlify, CloudFront, Fastly, Akamai, GitHub Pages, Fly.io, Render, Heroku, HubSpot CMS; Next.js, Nuxt, Gatsby, Astro, React, Vue, Svelte, Angular.
@@ -12,7 +13,31 @@ A Chrome extension (Manifest V3) that tells you what a help center, knowledge ba
 
 Custom domains are the interesting part. `help.example.com` often hides the vendor, but its DNS CNAME usually points at `example.zendesk.com`, `*.helpscoutdocs.com`, `us.intercomhelpcenter.com`, and so on. The extension resolves the CNAME chain over DNS-over-HTTPS to catch those.
 
-If no platform matches, the popup says **Unknown platform** and opens a **Raw clues** panel (generator meta, CNAME chain, `server` / `x-powered-by` / `via`, top third-party script hosts, header names) so you can write a rule.
+A **knowledge base platform** is a tool someone would choose specifically to publish and organize content people look things up in. Wikis count. General-purpose CMSs and site builders don't, but KB plugins on a CMS do.
+
+The popup's headline depends on what the scan finds on the current page:
+
+| Finding | Label | Headline | Supporting line |
+|---|---|---|---|
+| A KB rule matches | Knowledge base platform | Product name and confidence | Best evidence |
+| A `generalPurpose` KB rule matches, and the page doesn't look like a KB | Knowledge base platform | Product name and confidence | May not be a knowledge base. |
+| A CMS rule matches, with no KB rule | Site platform | CMS names, such as WordPress + Elementor | General-purpose CMS. No KB plugin detected. |
+| No KB or CMS rule matches, and the page looks like a KB | Knowledge base platform | Unknown platform | Looks like a knowledge base. Raw clues below. |
+| No KB or CMS rule matches, and the page doesn't look like a KB | Knowledge base platform | No knowledge base detected | No rule matched on this page. Raw clues below. |
+
+Matches in the other layers (AI & search, chat, hosting, frameworks, analytics) don't affect the headline. In both no-rule states the **Raw clues** panel (generator meta, CNAME chain, `server` / `x-powered-by` / `via`, top third-party script hosts, header names) opens so you can write a rule.
+
+"Looks like a KB" (`src/kb-shape.js`) needs at least two of these signals, because any one of them alone also shows up on blogs and marketing pages:
+
+- a `help`, `docs`, `support`, `kb`, `wiki`, or `knowledge` style subdomain or leading path segment
+- FAQPage or HowTo JSON-LD
+- a version switcher
+- 5 or more article links
+- a search box alongside those article links
+- Article or TechArticle JSON-LD at a KB-style subdomain or path
+- 20 or more internal pages on a KB-style subdomain
+
+`/category/` links never count. Pages with Blog, BlogPosting, LiveBlogPosting, or NewsArticle JSON-LD get no credit for article links or Article JSON-LD.
 
 ## Install (unpacked)
 
@@ -49,6 +74,7 @@ Permissions: `activeTab`, `scripting`, and a single host permission for `https:/
 2. **Resolve** (`src/background.js`, `src/dns.js`). The service worker follows the CNAME chain via DoH.
 3. **Match** (`src/matcher.js`). `match(signals, rules)` is a pure function. Each matching pattern adds its weight. A total of 100 or more is **high**, 50 or more is **medium**, and anything lower is **low**. Each result carries the evidence strings that fired.
 4. **Analyze** (`src/ai-readiness.js`, `src/structure.js`). Robots parsing (longest-match, RFC 9309 style), sitemap counting, JSON-LD types, and content-structure heuristics.
+5. **Decide** (`src/kb-shape.js`, `src/verdict.js`). `kbShape` returns whether the page looks like a KB and the reasons that fired. `platformVerdict(results, shape)` turns that and the matches into the headline state. Both are pure, and the popup and the CLI share them.
 
 The same matcher and analyzers run in Node for tests and for the CLI harness.
 
@@ -72,7 +98,8 @@ All rules live in one file, [`src/rules.json`](src/rules.json). A technology loo
 }
 ```
 
-- `category` is one of the keys in `categories` (`kb`, `ai-search`, `chat`, `hosting`, `framework`, `analytics`).
+- `category` is one of the keys in `categories` (`kb`, `cms`, `ai-search`, `chat`, `hosting`, `framework`, `analytics`). Only `kb` matches can become the primary platform. Use `cms` for general-purpose CMSs and site builders, and `kb` for a KB plugin that runs on one (with `implies` pointing at the CMS).
+- `generalPurpose: true` (optional, `kb` only) marks a tool that is often used for things other than a knowledge base, currently Notion and Super. When it matches on a page that doesn't look like a KB, the popup keeps the product name and adds "May not be a knowledge base."
 - Patterns are case-insensitive regex strings (JSON-escaped), or `{ "pattern": "…", "weight": N }` to override the default weight.
 - Signal types and default weights:
 
@@ -119,6 +146,7 @@ node scripts/scan.mjs --dump /tmp/out <url>   # also save the HTML and headers f
 - **Client-rendered help centers** (some Gorgias and Notion pages) carry few markers in server HTML. The extension sees the rendered DOM and does better than the CLI.
 - **Response headers** come from a cookieless `HEAD` request with `cache: force-cache`, so they may reflect a cached response or a logged-out view. Some servers answer `HEAD` differently from `GET`.
 - **Content structure** counts links on the current page only. It's a quick read, not a crawl.
+- **"Looks like a KB"** reads the current page only, and it is conservative. A docs section on a general domain (for example `/docs/` on a site with no matching rule) can show **No knowledge base detected** if it has no second signal. Client-rendered pages also give the CLI fewer signals than the extension.
 - **llms.txt** is checked at the site root. Docs mounted on a subpath (for example `/docs/llms.txt`) are reported when the site advertises them with an `x-llms-txt` header.
 
 ## Contributing and security

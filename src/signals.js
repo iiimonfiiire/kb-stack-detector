@@ -2,6 +2,8 @@ import { extractFromHtml, hostOf } from './extract.js';
 import { match, primaryPlatform } from './matcher.js';
 import { analyzeAiReadiness } from './ai-readiness.js';
 import { analyzeStructure } from './structure.js';
+import { kbShape } from './kb-shape.js';
+import { platformVerdict } from './verdict.js';
 
 export const MAX_HTML = 3_000_000;
 
@@ -60,13 +62,18 @@ export function analyze(raw, rules) {
   const { signals, extracted } = buildSignals(raw);
   const results = match(signals, rules);
   const platform = primaryPlatform(results);
+  const aiReadiness = analyzeAiReadiness({ files: raw.files || {}, extracted, html: signals.html, headers: signals.headers });
+  const structure = analyzeStructure({ url: signals.url, html: signals.html, extracted, platformId: platform?.id, headers: signals.headers });
+  const shape = kbShape({ url: signals.url, structure, aiReadiness });
   return {
     host: signals.host,
     url: signals.url,
     results,
     platform,
-    aiReadiness: analyzeAiReadiness({ files: raw.files || {}, extracted, html: signals.html, headers: signals.headers }),
-    structure: analyzeStructure({ url: signals.url, html: signals.html, extracted, platformId: platform?.id, headers: signals.headers }),
+    shape,
+    verdict: platformVerdict(results, shape),
+    aiReadiness,
+    structure,
     clues: rawClues(signals),
     partial: raw.partial || [],
   };

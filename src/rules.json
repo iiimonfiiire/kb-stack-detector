@@ -3,6 +3,9 @@
     "kb": {
       "name": "Knowledge base platform"
     },
+    "cms": {
+      "name": "CMS & site builders"
+    },
     "ai-search": {
       "name": "AI & search"
     },
@@ -291,6 +294,7 @@
       "id": "notion",
       "name": "Notion",
       "category": "kb",
+      "generalPurpose": true,
       "website": "https://www.notion.com/",
       "patterns": {
         "cname": [
@@ -324,6 +328,7 @@
       "id": "super",
       "name": "Super (Notion sites)",
       "category": "kb",
+      "generalPurpose": true,
       "website": "https://super.so/",
       "patterns": {
         "meta": {
@@ -919,6 +924,349 @@
       "patterns": {
         "url": [
           "^https://app\\.getguru\\.com/(?:card|public|pages)/"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "betterdocs",
+      "name": "BetterDocs",
+      "category": "kb",
+      "website": "https://betterdocs.co/",
+      "patterns": {
+        "scriptSrc": [
+          "/wp-content/plugins/betterdocs/"
+        ],
+        "assets": [
+          "/wp-content/plugins/betterdocs/"
+        ]
+      },
+      "implies": [
+        "wordpress"
+      ]
+    },
+    {
+      "id": "heroic-kb",
+      "name": "Heroic Knowledge Base",
+      "category": "kb",
+      "website": "https://herothemes.com/plugins/heroic-wordpress-knowledge-base/",
+      "patterns": {
+        "scriptSrc": [
+          "/wp-content/plugins/ht-knowledge-base/"
+        ],
+        "assets": [
+          "/wp-content/plugins/ht-knowledge-base/"
+        ]
+      },
+      "implies": [
+        "wordpress"
+      ]
+    },
+    {
+      "id": "wedocs",
+      "name": "weDocs",
+      "category": "kb",
+      "website": "https://wedocs.co/",
+      "patterns": {
+        "scriptSrc": [
+          "/wp-content/plugins/wedocs/"
+        ],
+        "assets": [
+          "/wp-content/plugins/wedocs/"
+        ]
+      },
+      "implies": [
+        "wordpress"
+      ]
+    },
+    {
+      "id": "echo-kb",
+      "name": "Echo Knowledge Base",
+      "category": "kb",
+      "website": "https://www.echoknowledgebase.com/",
+      "patterns": {
+        "scriptSrc": [
+          "/wp-content/plugins/echo-knowledge-base/"
+        ],
+        "assets": [
+          "/wp-content/plugins/echo-knowledge-base/"
+        ]
+      },
+      "implies": [
+        "wordpress"
+      ]
+    },
+    {
+      "id": "mediawiki",
+      "name": "MediaWiki",
+      "category": "kb",
+      "website": "https://www.mediawiki.org/",
+      "patterns": {
+        "meta": {
+          "generator": "^MediaWiki\\b"
+        },
+        "scriptSrc": [
+          "/load\\.php\\?.*\\bmodules="
+        ],
+        "assets": [
+          "/load\\.php\\?.*\\bmodules="
+        ],
+        "jsGlobals": [
+          "RLCONF"
+        ],
+        "html": [
+          "<body\\b[^>]*\\bclass=\"[^\"]*\\bmediawiki\\b"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "dokuwiki",
+      "name": "DokuWiki",
+      "category": "kb",
+      "website": "https://www.dokuwiki.org/",
+      "patterns": {
+        "meta": {
+          "generator": "^DokuWiki\\b"
+        },
+        "scriptSrc": [
+          "/lib/exe/(?:js|jquery)\\.php"
+        ],
+        "assets": [
+          "/lib/exe/css\\.php"
+        ],
+        "jsGlobals": [
+          "JSINFO"
+        ],
+        "cookies": [
+          "^DokuWiki$"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "bookstack",
+      "name": "BookStack",
+      "category": "kb",
+      "website": "https://www.bookstackapp.com/",
+      "patterns": {
+        "scriptSrc": [
+          "/dist/app\\.js\\?version=v\\d+\\.\\d+"
+        ],
+        "assets": [
+          "/dist/styles\\.css\\?version=v\\d+\\.\\d+"
+        ],
+        "cookies": [
+          "^bookstack_session$"
+        ],
+        "html": [
+          {
+            "pattern": "<h[1-6]\\b[^>]*\\bid=\"bkmrk-",
+            "weight": 60
+          }
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "wikijs",
+      "name": "Wiki.js",
+      "category": "kb",
+      "website": "https://js.wiki/",
+      "patterns": {
+        "scriptSrc": [
+          "/_assets/js/(?:app|runtime)\\.js\\?\\d+"
+        ],
+        "assets": [
+          "/_assets/css/app\\.[0-9a-f]+\\.css"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "xwiki",
+      "name": "XWiki",
+      "category": "kb",
+      "website": "https://www.xwiki.org/",
+      "patterns": {
+        "html": [
+          {
+            "pattern": "<html\\b[^>]*\\bdata-xwiki-reference=",
+            "weight": 80
+          }
+        ],
+        "assets": [
+          "/webjars/wiki%3A[^/]+/xwiki-platform-",
+          "/bin/skin/skins/[^/]+/style"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "wordpress",
+      "name": "WordPress",
+      "category": "cms",
+      "website": "https://wordpress.org/",
+      "patterns": {
+        "meta": {
+          "generator": "^WordPress\\b"
+        },
+        "headers": {
+          "link": "rel=\"https://api\\.w\\.org/\""
+        },
+        "scriptSrc": [
+          "/wp-(?:content|includes)/"
+        ],
+        "assets": [
+          "/wp-(?:content|includes)/"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "elementor",
+      "name": "Elementor",
+      "category": "cms",
+      "website": "https://elementor.com/",
+      "patterns": {
+        "meta": {
+          "generator": "^Elementor\\b"
+        },
+        "scriptSrc": [
+          "/wp-content/plugins/elementor(?:-pro)?/"
+        ],
+        "assets": [
+          "/wp-content/(?:plugins/elementor(?:-pro)?|uploads/elementor)/"
+        ],
+        "html": [
+          "<[a-z]+\\b[^>]*\\bdata-elementor-type="
+        ]
+      },
+      "implies": [
+        "wordpress"
+      ]
+    },
+    {
+      "id": "drupal",
+      "name": "Drupal",
+      "category": "cms",
+      "website": "https://www.drupal.org/",
+      "patterns": {
+        "meta": {
+          "generator": "^Drupal\\b"
+        },
+        "headers": {
+          "x-generator": "^Drupal\\b",
+          "x-drupal-cache": "",
+          "x-drupal-dynamic-cache": ""
+        },
+        "jsGlobals": [
+          "drupalSettings"
+        ],
+        "html": [
+          "<script\\b[^>]*\\bdata-drupal-selector=\"drupal-settings-json\""
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "webflow",
+      "name": "Webflow",
+      "category": "cms",
+      "website": "https://webflow.com/",
+      "patterns": {
+        "meta": {
+          "generator": "^Webflow\\b"
+        },
+        "cname": [
+          "\\.webflow\\.com$",
+          "\\.webflow\\.io$"
+        ],
+        "url": [
+          {
+            "pattern": "^https?://[^/]+\\.webflow\\.io/",
+            "weight": 80
+          }
+        ],
+        "scriptSrc": [
+          "(?:cdn\\.prod|assets|assets-global)\\.website-files\\.com"
+        ],
+        "assets": [
+          "(?:cdn\\.prod|assets|assets-global)\\.website-files\\.com"
+        ],
+        "html": [
+          "<html\\b[^>]*\\bdata-wf-(?:site|page)="
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "squarespace",
+      "name": "Squarespace",
+      "category": "cms",
+      "website": "https://www.squarespace.com/",
+      "patterns": {
+        "headers": {
+          "server": "^Squarespace\\b"
+        },
+        "cname": [
+          "\\.squarespace\\.com$"
+        ],
+        "scriptSrc": [
+          "(?:assets|static1)\\.squarespace\\.com/"
+        ],
+        "assets": [
+          "(?:assets|static1)\\.squarespace\\.com/"
+        ],
+        "jsGlobals": [
+          "Static.SQUARESPACE_CONTEXT"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "wix",
+      "name": "Wix",
+      "category": "cms",
+      "website": "https://www.wix.com/",
+      "patterns": {
+        "meta": {
+          "generator": "^Wix\\.com\\b"
+        },
+        "headers": {
+          "x-wix-request-id": "",
+          "server": "^Pepyaka\\b"
+        },
+        "cname": [
+          "\\.wixdns\\.net$"
+        ],
+        "scriptSrc": [
+          "static\\.parastorage\\.com/"
+        ],
+        "assets": [
+          "static\\.parastorage\\.com/"
+        ]
+      },
+      "implies": []
+    },
+    {
+      "id": "ghost",
+      "name": "Ghost",
+      "category": "cms",
+      "website": "https://ghost.org/",
+      "patterns": {
+        "meta": {
+          "generator": "^Ghost\\b"
+        },
+        "headers": {
+          "ghost-fastly": ""
+        },
+        "cname": [
+          "\\.ghost\\.io$"
+        ],
+        "scriptSrc": [
+          "cdn\\.jsdelivr\\.net/ghost/",
+          "/public/(?:member-attribution|ghost-stats)\\.min\\.js"
         ]
       },
       "implies": []
